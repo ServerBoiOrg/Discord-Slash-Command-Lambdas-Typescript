@@ -13,14 +13,14 @@ jobs:
           node-version: "14.x"
       - name: Install Dependencies
         run: |
-          cd ./provision_server
+          cd ./provision-server
           npm install
       - name: Compile
         run: |
           npm run compile
       - name: Zip
         run: |
-          cd ./provision_server/hello_world/built
+          cd ./provision-server/hello_world/built
           zip -r provision_server/zip .
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
