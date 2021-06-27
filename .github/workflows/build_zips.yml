@@ -19,12 +19,12 @@ jobs:
       - name: Zip
         run: |
           cd ./provision-server/hello-world/built
-          zip -r ./provision_server.zip .
+          zip -r provision_server.zip .
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
         with:
           name: provision_server_package
-          path: ./provision_server.zip
+          path: ./provision-server/hello-world/built/provision_server.zip
         env:
           AWS_REGION: ${{ secrets.REGION }}
           AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
