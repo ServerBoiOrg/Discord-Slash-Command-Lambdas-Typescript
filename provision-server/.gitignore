@@ -52,7 +52,7 @@ bower_components
 build/Release
 
 # Dependency directories
-built
+built/
 node_modules/
 jspm_packages/
 
