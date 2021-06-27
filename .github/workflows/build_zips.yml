@@ -17,10 +17,11 @@ jobs:
           npm install
       - name: Compile
         run: |
+          cd ./provision-server/hello-world
           npm run compile
       - name: Zip
         run: |
-          cd ./provision-server/hello_world/built
+          cd ./provision-server/hello-world/built
           zip -r provision_server/zip .
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
