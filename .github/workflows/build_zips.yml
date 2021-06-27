@@ -1,0 +1,33 @@
+name: Deploy
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "14.x"
+      - name: Install Dependencies
+        run: |
+          cd ./provision_server
+          npm install
+      - name: Compile
+        run: |
+          npm run compile
+      - name: Zip
+        run: |
+          cd ./provision_server/hello_world/built
+          zip -r provision_server/zip .
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v2
+        with:
+          name: provision_server_package
+          path: ./provision_server.zip
+        env:
+          AWS_REGION: ${{ secrets.REGION }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
