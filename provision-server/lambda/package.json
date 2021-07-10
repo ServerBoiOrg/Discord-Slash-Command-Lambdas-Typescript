@@ -7,18 +7,24 @@
   "author": "SAM CLI",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.21.1"
+    "@aws-sdk/client-dynamodb": "^3.19.0",
+    "@linode/api-v4": "^0.53.2",
+    "@vultr/vultr-node": "^2.1.0",
+    "axios": "^0.21.1",
+    "digitalocean": "^1.2.1",
+    "uuid": "^8.3.2"
   },
   "scripts": {
     "test": "mocha src/tests/unit/",
     "compile": "tsc"
   },
   "devDependencies": {
+    "@aws-sdk/types": "^3.18.0",
+    "@types/node": "^13.13.5",
+    "@types/uuid": "^8.3.0",
+    "aws-sdk": "^2.936.0",
     "chai": "^4.2.0",
     "mocha": "^8.2.1",
-    "aws-sdk": "^2.655.0",
-    "@types/aws-lambda": "^8.10.51",
-    "@types/node": "^13.13.5",
-    "typescript": "^3.8.3"
+    "typescript": "^4.3.4"
   }
 }
