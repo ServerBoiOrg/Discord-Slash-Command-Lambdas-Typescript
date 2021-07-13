@@ -1,121 +1,132 @@
-import { v4 as uuidv4 } from "uuid";
-import {
-  DynamoDBClient,
-  QueryCommand,
-  QueryCommandInput,
-  QueryCommandOutput,
-  QueryOutput,
-} from "@aws-sdk/client-dynamodb";
-import internal = require("stream");
+import { PutItemCommandInput } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand} from "@aws-sdk/lib-dynamodb";
+import { AWSProvision, AWSProvisionServerResponse } from "./lib/provisioning/aws/awsProvisioning"; 
+import { ProvisioningBase } from "./lib/provisioning/baseProvisioning";
+import { createDynamoClient } from "./lib/utils/awsSdkUtils"
 
 interface ProvisionServerEvent {
   service: string;
+  username: string
+  userId: string;
+  name: string;
+  game: string;
+  interactionToken: string
+  applicationId: string
+  url: string
 }
 
 interface ProvisionServerResponse extends ProvisionServerEvent {
-  service: string;
+}
+
+interface ServerItem {
+  ServerID: string
+  OwnerID: string
+  Owner: string
+  Game: string
+  Name: string
+  Service: string
+  Port: number
+  InstanceID?: string
+  Region?: string
+  AccountID?: string
 }
 
 export const lambdaHandler = async (
   event: ProvisionServerEvent
-): Promise<ProvisionServerResponse> => {
+): Promise<ProvisioningBase> => {
   const service = event.service;
 
+  const provisionObj = await serviceSwitchCase(service, event)
+
+  const serverInfo = await provisionObj.provisionServer()
+
+  const serverItem: ServerItem = {
+    ServerID: provisionObj.serverId,
+    OwnerID: event.userId,
+    Owner: event.username,
+    Game: event.game,
+    Name: event.name,
+    Port: serverInfo.port,
+    Service: event.service
+  }
+
+  if (instanceOfAWSProvisionServerResponse(serverInfo)) {
+    serverItem.InstanceID = serverInfo.instanceId
+    serverItem.Region = serverInfo.region
+    serverItem.AccountID = serverInfo.accountId
+  }
+
+  await writeServerInfo(serverItem)
+
+  return provisionObj
+};
+
+const instanceOfAWSProvisionServerResponse = (object: any): object is AWSProvisionServerResponse => {
+  return object
+}
+
+const writeServerInfo = async(serverItem: ServerItem) => {
+  const dynamo = createDynamoClient()
+  const documentClient = DynamoDBDocumentClient.from(dynamo)
+
+  const params = {
+    TableName: process.env.SERVER_TABLE,
+    Item: serverItem
+  }
+
+  try {
+    await documentClient.send(new PutCommand(params))
+  } catch (error) {
+    console.log(error)
+    throw error
+  }
+}
+
+const serviceSwitchCase = async(
+  service: string,
+  event: ProvisionServerEvent
+): Promise<ProvisioningBase> => {
   switch (service) {
     case "aws":
       console.log(service);
+      
+      const queryInfo = await queryDynamo(event.userId)
+      // Marshall this
+      const accountId = queryInfo["AWSAccountID"].S
+
+      const provisionObj = new AWSProvision({
+        accountId: accountId,
+        userId: event.userId,
+        service: event.service,
+        name: event.name,
+        game: event.game,
+        interactionToken: event.interactionToken,
+        applicationId: event.applicationId,
+        url: event.url,
+        executionName: "ProvisionServer"
+      })
+      return provisionObj
     case "linode":
       console.log(service);
     case "vultr":
       console.log(service);
   }
-
-  return event;
-};
-
-interface ProvisioningBaseProps {
-  userId: number;
-  service: string;
-  name: string;
-  game: string;
-  interactionToken: string;
-  applicationId: string;
-  executionName: string;
 }
 
-export class ProvisioningBase {
-  readonly serverId: string;
-  readonly userId: number;
-  readonly service: string;
-  readonly name: string;
-  readonly game: string;
-  readonly interactionToken: string;
-  readonly applicationId: string;
-  readonly executionName: string;
-
-  constructor(props: ProvisioningBaseProps) {
-    this.serverId = uuidv4().slice(-4);
-    this.userId = props.userId;
-    this.service = props.service;
-    this.name = props.name;
-    this.game = props.game;
-    this.interactionToken = props.interactionToken;
-    this.applicationId = props.applicationId;
-    this.executionName = props.executionName;
-  }
-
-  private onQuery(err: any, data: QueryCommandOutput): QueryOutput {
-    if (err) {
-      console.error("Unable to query. Error:", JSON.stringify(err, null, 2));
-    } else {
-      console.log("Query succeeded.");
-      return data;
-    }
-  }
-
-  async query_user_info(): Promise<QueryCommandOutput> {
-    const dynamo = new DynamoDBClient({});
-
-    const queryParams: QueryCommandInput = {
-      TableName: process.env.USER_TABLE,
-      KeyConditionExpression: `UserID = ${this.userId}`,
-    };
-
-    const run = async () => {
-      try {
-        const data = await dynamo.send(new QueryCommand(queryParams));
-        return data;
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    return run();
-  }
-}
-
-export interface AWSProvisioningProps extends ProvisioningBaseProps {
-  readonly tableName: string;
-  readonly region: string;
-  test: {
-    shtsht: string;
-    shts: number;
-  };
-}
-
-export class AWSProvision extends ProvisioningBase {
-  readonly tableName: string;
-  readonly region: string;
-  readonly accountId: any;
-  constructor(props: AWSProvisioningProps) {
-    super(props);
-
-    this.tableName = process.env.AWS_TABLE;
-    this.region = props.region;
-
-    const userInfo = this.query_user_info();
-
-    this.accountId = userInfo.then((res) => {
-      let account = res["Items"][0]["AWSAccountId"].S;
-    });
+const queryDynamo = async(userId: string) => {
+  var params = {
+    TableName: process.env.AWS_TABLE,
+    KeyConditionExpression: `UserID = :userId`,
+    ExpressionAttributeValues: {
+        ':userId': { 'S': userId }
+    },
+  }; 
+  const dynamo = createDynamoClient()
+  try {
+    const resp = await dynamo.query(params)
+    return resp.Items[0]
+  } catch (error) {
+    console.log(error)
+    throw error
   }
 }

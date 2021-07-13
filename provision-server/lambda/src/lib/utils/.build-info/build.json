@@ -1,0 +1,41 @@
+{
+  "valheim": {
+    "container": "lloesche/valheim-server",
+    "ports": [
+      2456,
+      2458
+    ],
+    "instanceType": {
+      "aws": "c5a.large",
+      "azure": "Standard_DS1_v2",
+      "linode": "g6-standard-2"
+    }
+  },
+  "csgo": {
+    "container": "serverboi/csgo:dev",
+    "ports": [
+      27015,
+      27020,
+      27005
+    ],
+    "instanceType": {
+      "aws": "c5a.large",
+      "azure": "Standard_DS1_v2",
+      "linode": "g6-standard-2"
+    },
+    "drive_size": 35
+  },
+  "ns2": {
+    "container": "serverboi/ns2:dev",
+    "ports": [
+      27015,
+      27016
+    ],
+    "instanceType": {
+      "aws": "c5.large",
+      "azure": "Standard_DS1_v2",
+      "linode": "g6-standard-2"
+    },
+    "drive_size": 8
+  }
+}

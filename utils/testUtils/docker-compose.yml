@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  dynamo:
+    container_name: serverboi-dynamodb-local
+    image: amazon/dynamodb-local
+    networks:
+      - backend
+    ports:
+      - '8000:8000'
+    volumes:
+      - dynamo:/home/dynamodblocal
+    working_dir: /home/dynamodblocal
+    command: '-jar DynamoDBLocal.jar -sharedDb -dbPath .'
+
+networks:
+  backend:
+    name: serverboi-backend
+
+volumes:
+  dynamo:
+    name: serverboi-dynamo
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: .test-volumes/dynamo

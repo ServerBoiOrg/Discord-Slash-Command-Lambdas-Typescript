@@ -11,29 +11,35 @@ Globals:
     Timeout: 3
 
 Resources:
-  HelloWorldFunction:
+  ProvisionServerFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: hello-world/built
+      CodeUri: lambda/built/
       Handler: app.lambdaHandler
       Runtime: nodejs14.x
-      Events:
-        HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /hello
-            Method: get
+      Environment:
+        Variables:
+          AWS_TABLE: AWS-User-List
+      Layers:
+        - !Ref NodeModulesLayer
+  NodeModulesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: Provision-Server-Dependencies-Layer
+      Description: Dependencies for Provision Server Function
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+        - nodejs14.x
+      LicenseInfo: 'MIT'
+      RetentionPolicy: Delete
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  ProvisionServerFunction:
+    Description: "Function for Provision server"
+    Value: !GetAtt ProvisionServerFunction.Arn
+  # ProvisionServerLayerLatestVersion:
+  #   Description: "Latest layer version for Provision Server"
+  #   Value: !GetAtt NodeModulesLayer
+  ProvisionServerFunctionIamRole:
+    Description: "Implicit IAM Role created for Provision Server function"
+    Value: !GetAtt ProvisionServerFunctionRole.Arn

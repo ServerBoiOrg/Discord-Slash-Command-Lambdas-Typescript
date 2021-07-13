@@ -6,25 +6,22 @@
   "repository": "https://github.com/awslabs/aws-sam-cli/tree/develop/samcli/local/init/templates/cookiecutter-aws-sam-hello-nodejs",
   "author": "SAM CLI",
   "license": "MIT",
-  "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.19.0",
-    "@linode/api-v4": "^0.53.2",
-    "@vultr/vultr-node": "^2.1.0",
-    "axios": "^0.21.1",
-    "digitalocean": "^1.2.1",
-    "uuid": "^8.3.2"
-  },
   "scripts": {
     "test": "mocha src/tests/unit/",
-    "compile": "tsc"
+    "compile": "tsc",
+    "install-dependencies": "npm install --prefix ./dependencies/nodejs",
+    "dynamo-local": "docker run -p 8000:8000 amazon/dynamodb-local",
+    "sam-invoke": "sam local invoke -e events/event.json --region us-west-2"
   },
   "devDependencies": {
     "@aws-sdk/types": "^3.18.0",
     "@types/node": "^13.13.5",
     "@types/uuid": "^8.3.0",
-    "aws-sdk": "^2.936.0",
+    "aws-sdk": "^2.943.0",
     "chai": "^4.2.0",
     "mocha": "^8.2.1",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "@aws-sdk/client-ec2": "^3.21.0",
+    "@aws-sdk/lib-dynamodb": "^3.21.0"
   }
 }

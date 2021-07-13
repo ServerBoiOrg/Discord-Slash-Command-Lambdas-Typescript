@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.19.0",
+    "@aws-sdk/lib-dynamodb": "^3.21.0",
+    "@aws-sdk/client-ec2": "^3.21.0",
+    "@aws-sdk/client-sts": "^3.21.0",
+    "@linode/api-v4": "^0.53.2",
+    "@vultr/vultr-node": "^2.1.0",
+    "axios": "^0.21.1",
+    "digitalocean": "^1.2.1",
+    "uuid": "^8.3.2"
+  }
+}
